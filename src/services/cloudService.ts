@@ -24,6 +24,15 @@ export interface SitePayload {
 
 const STORAGE_CONFIG_KEY = 'kimel_firebase_config';
 
+export const DEFAULT_FIREBASE_CONFIG: FirebaseConfig = {
+  apiKey: 'AIzaSyD1H4sqJDHKxTDF_CkiLatJgYHSRoQv_Nk',
+  authDomain: 'kimelweb.firebaseapp.com',
+  projectId: 'kimelweb',
+  storageBucket: 'kimelweb.firebasestorage.app',
+  messagingSenderId: '315639694785',
+  appId: '1:315639694785:web:36300302f0ad0471bb5b40',
+};
+
 class CloudService {
   private app: FirebaseApp | null = null;
   private db: Firestore | null = null;
@@ -35,27 +44,16 @@ class CloudService {
     this.autoConnect();
   }
 
-  public getConfig(): FirebaseConfig | null {
+  public getConfig(): FirebaseConfig {
     try {
       const saved = localStorage.getItem(STORAGE_CONFIG_KEY);
       if (saved) {
-        return JSON.parse(saved);
-      }
-      // Check Vite env
-      if (import.meta.env.VITE_FIREBASE_PROJECT_ID && import.meta.env.VITE_FIREBASE_API_KEY) {
-        return {
-          apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-          authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-          projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-          storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-          messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-          appId: import.meta.env.VITE_FIREBASE_APP_ID,
-        };
+        return { ...DEFAULT_FIREBASE_CONFIG, ...JSON.parse(saved) };
       }
     } catch (e) {
       console.warn('Failed to parse Firebase config', e);
     }
-    return null;
+    return DEFAULT_FIREBASE_CONFIG;
   }
 
   public saveConfig(config: FirebaseConfig | null) {
@@ -65,9 +63,10 @@ class CloudService {
       localStorage.removeItem(STORAGE_CONFIG_KEY);
     }
     this.disconnect();
-    if (config) {
-      this.connect(config);
-    }
+    const effective = config || DEFAULT_FIREBASE_CONFIG;
+    this.connect(effective).catch(err => {
+      console.warn('Reconnect failed:', err);
+    });
   }
 
   public onStatusChange(callback: (connected: boolean) => void): () => void {
@@ -177,7 +176,6 @@ class CloudService {
   public async pushAllToCloud(payload: SitePayload): Promise<boolean> {
     if (!this.db) {
       const config = this.getConfig();
-      if (!config) throw new Error('Database Online belum dikonfigurasi.');
       await this.connect(config);
     }
     if (!this.db) throw new Error('Koneksi Firestore gagal.');
