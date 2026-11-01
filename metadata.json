@@ -1,0 +1,6 @@
+{
+  "name": "KIM EL — OFFICIAL ARTIST",
+  "description": "Official artist and entertainment management website for KIM EL, featuring editorial gallery, projects, music & film releases, and management dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
