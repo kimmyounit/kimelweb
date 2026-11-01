@@ -3,6 +3,7 @@ import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { soundEngine } from '../utils/soundEffects';
 import { Volume2, VolumeX, Menu, X, SlidersHorizontal } from 'lucide-react';
+import logoImg from '../assets/aistudio/Tak_berjudul3_20261101103042_8f9c5619.png';
 
 export const Navbar: React.FC = () => {
   const { setIsAdminOpen } = useData();
@@ -69,9 +70,12 @@ export const Navbar: React.FC = () => {
             title="KIM EL"
           >
             <img
-              src="/assets/aistudio/Tak_berjudul3_20261101103042_8f9c5619.png"
+              src={logoImg}
               alt="KIM EL Logo"
               className="h-8 w-auto object-contain filter drop-shadow-[0_2px_8px_rgba(255,255,255,0.4)] group-hover:scale-105 transition-transform"
+              onError={(e) => {
+                e.currentTarget.src = './assets/aistudio/Tak_berjudul3_20261101103042_8f9c5619.png';
+              }}
             />
             <span className="font-display text-lg font-bold tracking-widest text-white whitespace-nowrap">
               KIM EL

@@ -19,7 +19,7 @@ export const Hero: React.FC = () => {
       {/* Background Artist Image - Dominating the viewport */}
       <div className="absolute inset-0 z-0">
         <img
-          src={profile.heroImage || '/assets/aistudio/WhatsApp_Image_2026-11-01_at_10.46.55_1c5c2e00.jpeg'}
+          src={profile.heroImage || './assets/aistudio/WhatsApp_Image_2026-11-01_at_10.46.55_1c5c2e00.jpeg'}
           alt={profile.name}
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center filter contrast-125 brightness-90 md:scale-105 transition-transform duration-1000 ease-out"

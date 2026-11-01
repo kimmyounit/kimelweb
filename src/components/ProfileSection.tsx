@@ -34,7 +34,7 @@ export const ProfileSection: React.FC = () => {
             <div>
               <div className="aspect-[4/5] w-full overflow-hidden bg-neutral-900 border border-white/10 mb-6">
                 <img
-                  src={profile.heroImage || '/assets/aistudio/WhatsApp_Image_2026-11-01_at_10.46.55_1c5c2e00.jpeg'}
+                  src={profile.heroImage || './assets/aistudio/WhatsApp_Image_2026-11-01_at_10.46.55_1c5c2e00.jpeg'}
                   alt={profile.name}
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover object-center filter contrast-125"

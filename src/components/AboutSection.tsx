@@ -33,7 +33,7 @@ export const AboutSection: React.FC = () => {
           <div className="lg:col-span-5 relative group">
             <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-900 border border-white/15">
               <img
-                src={profile.portraitImage || '/assets/images/editorial_photoshoot_fashion_1793504968607.jpg'}
+                src={profile.portraitImage || './assets/images/editorial_photoshoot_fashion_1793504968607.jpg'}
                 alt={`${profile.name} Official Portrait`}
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover object-top filter grayscale contrast-110 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-out"

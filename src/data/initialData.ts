@@ -35,8 +35,8 @@ export const initialArtistProfile: ArtistProfile = {
     }
   ],
   personalBackground: "Rooted in cross-continental discipline and classical audio training, KIM EL developed an obsession with tactile analog acoustics and stark architectural aesthetics from an early age, shaping his distinctive sonic and visual signatures.",
-  heroImage: "/assets/aistudio/WhatsApp_Image_2026-11-01_at_10.46.55_1c5c2e00.jpeg",
-  portraitImage: "/assets/images/editorial_photoshoot_fashion_1793504968607.jpg",
+  heroImage: "./assets/aistudio/WhatsApp_Image_2026-11-01_at_10.46.55_1c5c2e00.jpeg",
+  portraitImage: "./assets/images/editorial_photoshoot_fashion_1793504968607.jpg",
   disciplines: [
     "Vocal Performance & Songwriting",
     "Creative Direction & Concept Design",
@@ -75,7 +75,7 @@ export const initialGalleryItems: GalleryItem[] = [
     title: "Chiaroscuro Silhouette — Official Editorial",
     category: "editorial",
     categoryLabel: "Editorial Photos",
-    image: "/assets/images/editorial_photoshoot_fashion_1793504968607.jpg",
+    image: "./assets/images/editorial_photoshoot_fashion_1793504968607.jpg",
     aspectRatio: "portrait",
     year: "2026",
     credits: "Creative Direction: KIM EL Studio · Photography: Hiroshi Tanaka",
@@ -86,7 +86,7 @@ export const initialGalleryItems: GalleryItem[] = [
     title: "The Eclipse Arena Tour — Live in Tokyo",
     category: "event",
     categoryLabel: "Event Documentation",
-    image: "/assets/images/stage_live_performance_1793504968267.jpg",
+    image: "./assets/images/stage_live_performance_1793504968267.jpg",
     aspectRatio: "landscape",
     year: "2026",
     credits: "Production: KIM EL Live · Venue: Tokyo Dome",
@@ -97,7 +97,7 @@ export const initialGalleryItems: GalleryItem[] = [
     title: "Analog Frequencies — Studio Session III",
     category: "bts",
     categoryLabel: "Behind The Scenes",
-    image: "/assets/images/studio_recording_session_1793504970684.jpg",
+    image: "./assets/images/studio_recording_session_1793504970684.jpg",
     aspectRatio: "landscape",
     year: "2025",
     credits: "Location: Black Cube Studios · Tracking: Vintage SSL 4000G+",
@@ -108,7 +108,7 @@ export const initialGalleryItems: GalleryItem[] = [
     title: "Haute Couture & Sculptural Silver",
     category: "photoshoot",
     categoryLabel: "Official Photoshoot",
-    image: "/assets/images/editorial_campaign_silver_1793504969525.jpg",
+    image: "./assets/images/editorial_campaign_silver_1793504969525.jpg",
     aspectRatio: "portrait",
     year: "2026",
     credits: "Monochrome Haute Couture Collection · Styling: Studio EL",
@@ -119,7 +119,7 @@ export const initialGalleryItems: GalleryItem[] = [
     title: "Emergence — The Noir Portrait Series",
     category: "photoshoot",
     categoryLabel: "Official Photoshoot",
-    image: "/assets/aistudio/WhatsApp_Image_2026-11-01_at_10.46.55_1c5c2e00.jpeg",
+    image: "./assets/aistudio/WhatsApp_Image_2026-11-01_at_10.46.55_1c5c2e00.jpeg",
     aspectRatio: "portrait",
     year: "2026",
     credits: "Official Artist Archive No. 01",
@@ -130,7 +130,7 @@ export const initialGalleryItems: GalleryItem[] = [
     title: "NIGHTFALL: Cinematic Visualizer Trailer",
     category: "video",
     categoryLabel: "Video Gallery",
-    image: "/assets/images/stage_live_performance_1793504968267.jpg",
+    image: "./assets/images/stage_live_performance_1793504968267.jpg",
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
     aspectRatio: "landscape",
     year: "2026",
@@ -148,7 +148,7 @@ export const initialProjects: ProjectItem[] = [
     role: "Headliner & Executive Creative Director",
     releaseDate: "Q3 2026",
     year: "2026",
-    coverImage: "/assets/images/stage_live_performance_1793504968267.jpg",
+    coverImage: "./assets/images/stage_live_performance_1793504968267.jpg",
     summary: "A monumental 28-city international stadium and arena spectacle featuring kinetic staging, bespoke stage architecture, and live orchestral synthesis.",
     details: "Produced in collaboration with global staging pioneers, Nocturne merges physical choreography with reactive light installations.",
     externalLink: "#contact",
@@ -162,7 +162,7 @@ export const initialProjects: ProjectItem[] = [
     role: "Executive Producer, Vocalist & Composer",
     releaseDate: "Summer 2026",
     year: "2026",
-    coverImage: "/assets/images/studio_recording_session_1793504970684.jpg",
+    coverImage: "./assets/images/studio_recording_session_1793504970684.jpg",
     summary: "12-track conceptual album exploring sonic minimalism, cinematic brass, and hyper-modern alternative R&B arrangements.",
     details: "Recorded between Tokyo, Paris, and Los Angeles, utilizing legendary analog outboard gear and cutting-edge spatial audio mastering.",
     tags: ["Studio Album", "Spatial Audio", "Analog Production"]
@@ -175,7 +175,7 @@ export const initialProjects: ProjectItem[] = [
     role: "Global House Ambassador & Campaign Lead",
     releaseDate: "Fall/Winter 2025",
     year: "2025",
-    coverImage: "/assets/images/editorial_campaign_silver_1793504969525.jpg",
+    coverImage: "./assets/images/editorial_campaign_silver_1793504969525.jpg",
     summary: "Exclusive international capsule campaign bridging sculptural couture jewelry, tailored outerwear, and minimalist campaign films.",
     details: "Debuted during Paris Fashion Week with worldwide billboard takeovers and a limited-edition artist lookbook.",
     tags: ["Haute Couture", "Global Campaign", "Fashion Week"]
@@ -188,7 +188,7 @@ export const initialProjects: ProjectItem[] = [
     role: "Solo Performer & Art Director",
     releaseDate: "November 2024",
     year: "2024",
-    coverImage: "/assets/images/editorial_photoshoot_fashion_1793504968607.jpg",
+    coverImage: "./assets/images/editorial_photoshoot_fashion_1793504968607.jpg",
     summary: "An experimental acoustic-electronic broadcast concert captured in 4K HDR across three dramatic monolithic visual acts.",
     details: "Streamed globally to over 1.8 million concurrent viewers and hailed as a benchmark in digital performance curation.",
     tags: ["Concert Film", "Broadcast", "Acoustic Hybrid"]
@@ -201,7 +201,7 @@ export const initialProjects: ProjectItem[] = [
     role: "Guest Sound Sculptor & Keynote Performer",
     releaseDate: "May 2025",
     year: "2025",
-    coverImage: "/assets/aistudio/WhatsApp_Image_2026-11-01_at_10.46.55_1c5c2e00.jpeg",
+    coverImage: "./assets/aistudio/WhatsApp_Image_2026-11-01_at_10.46.55_1c5c2e00.jpeg",
     summary: "Immersive sound pavilion installation exploring spatial resonance, architectural silence, and ambient human frequencies.",
     details: "Commissioned by contemporary curators to showcase the intersection of modern vocal frequencies and structural design.",
     tags: ["Special Appearance", "Venice Biennale", "Sound Art"]
@@ -216,7 +216,7 @@ export const initialNews: NewsItem[] = [
     outlet: "OFFICIAL PRESS DISPATCH",
     excerpt: "The visionary artist confirms the ambitious world tour production, featuring state-of-the-art kinetic stage architecture and unprecedented audio design.",
     content: "Following months of intense preparation in secret creative workshops across Tokyo and Paris, KIM EL Entertainment officially confirmed the dates for 'NOCTURNE'. The production will mark the artist's most ambitious global project to date, featuring custom-engineered monolithic LED light arrays and an unreleased repertoire from the forthcoming studio record.",
-    coverImage: "/assets/images/stage_live_performance_1793504968267.jpg",
+    coverImage: "./assets/images/stage_live_performance_1793504968267.jpg",
     category: "World Tour"
   },
   {
@@ -226,7 +226,7 @@ export const initialNews: NewsItem[] = [
     outlet: "INTERNATIONAL PRESS",
     excerpt: "An in-depth cover profile exploring KIM EL's meticulous approach to visual identity, haute couture styling, and creative sovereignty.",
     content: "'There is no separation between the note you sing and the shadow you cast on camera,' KIM EL remarks during the intimate cover conversation. The piece explores his collaboration with international fashion directors, his hands-on executive production style, and his resistance to cookie-cutter entertainment molds.",
-    coverImage: "/assets/images/editorial_photoshoot_fashion_1793504968607.jpg",
+    coverImage: "./assets/images/editorial_photoshoot_fashion_1793504968607.jpg",
     category: "Editorial Cover"
   },
   {
@@ -236,7 +236,7 @@ export const initialNews: NewsItem[] = [
     outlet: "STUDIO JOURNAL",
     excerpt: "Behind closed doors with the sound engineering team crafting analog tape textures and spatial surround frequencies.",
     content: "With late-night studio sessions spanning Tokyo and Los Angeles, KIM EL has engaged master acoustic technicians to capture warm tube-saturated vocal takes. The upcoming record promises to deliver an uncompromising listening experience that honors classic hi-fi audiophile principles while pioneering futuristic sub-bass architecture.",
-    coverImage: "/assets/images/studio_recording_session_1793504970684.jpg",
+    coverImage: "./assets/images/studio_recording_session_1793504970684.jpg",
     category: "Music Production"
   }
 ];

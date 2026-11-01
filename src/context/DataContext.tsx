@@ -54,7 +54,11 @@ const STORAGE_KEYS = {
 
 const sanitizePath = (str: string): string => {
   if (typeof str !== 'string') return str;
-  return str.replaceAll('/src/assets/images/', '/assets/images/');
+  return str
+    .replaceAll('/src/assets/images/', './assets/images/')
+    .replaceAll('/src/assets/aistudio/', './assets/aistudio/')
+    .replaceAll('/assets/images/', './assets/images/')
+    .replaceAll('/assets/aistudio/', './assets/aistudio/');
 };
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

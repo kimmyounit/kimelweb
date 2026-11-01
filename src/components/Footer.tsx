@@ -3,6 +3,7 @@ import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { soundEngine } from '../utils/soundEffects';
 import { SlidersHorizontal, ArrowUp } from 'lucide-react';
+import logoImg from '../assets/aistudio/Tak_berjudul3_20261101103042_8f9c5619.png';
 
 export const Footer: React.FC = () => {
   const { profile, setIsAdminOpen } = useData();
@@ -30,9 +31,12 @@ export const Footer: React.FC = () => {
           <div className="md:col-span-6 space-y-6">
             <div className="flex items-center gap-3">
               <img
-                src="/assets/aistudio/Tak_berjudul3_20261101103042_8f9c5619.png"
+                src={logoImg}
                 alt="KIM EL Logo"
                 className="h-10 w-auto object-contain filter drop-shadow-[0_2px_8px_rgba(255,255,255,0.4)]"
+                onError={(e) => {
+                  e.currentTarget.src = './assets/aistudio/Tak_berjudul3_20261101103042_8f9c5619.png';
+                }}
               />
               <span className="font-display text-2xl font-bold tracking-widest text-white">
                 KIM EL
