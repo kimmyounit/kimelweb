@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   ArtistProfile,
   GalleryItem,
@@ -12,6 +12,11 @@ import {
   initialProjects,
   initialNews
 } from '../data/initialData';
+import {
+  cloudService,
+  type FirebaseConfig,
+  type SitePayload
+} from '../services/cloudService';
 
 interface DataContextType {
   profile: ArtistProfile;
@@ -22,6 +27,9 @@ interface DataContextType {
   isAdminOpen: boolean;
   selectedMedia: GalleryItem | null;
   selectedNews: NewsItem | null;
+  isCloudConnected: boolean;
+  isSyncing: boolean;
+  cloudConfig: FirebaseConfig | null;
   setIsAdminOpen: (open: boolean) => void;
   setSelectedMedia: (item: GalleryItem | null) => void;
   setSelectedNews: (item: NewsItem | null) => void;
@@ -40,6 +48,8 @@ interface DataContextType {
   resetToDefaults: () => void;
   exportData: () => string;
   importData: (jsonData: string) => boolean;
+  saveCloudConfig: (config: FirebaseConfig | null) => Promise<boolean>;
+  syncAllToCloud: () => Promise<boolean>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -127,8 +137,61 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<GalleryItem | null>(null);
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
+  const [isCloudConnected, setIsCloudConnected] = useState<boolean>(cloudService.isCloudActive());
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [cloudConfig, setCloudConfig] = useState<FirebaseConfig | null>(() => cloudService.getConfig());
 
-  // Persistence effects
+  // Listen to cloud status changes
+  useEffect(() => {
+    const unsub = cloudService.onStatusChange((status) => {
+      setIsCloudConnected(status);
+    });
+    return unsub;
+  }, []);
+
+  // Subscribe to real-time updates from Firebase
+  useEffect(() => {
+    const unsub = cloudService.subscribeToUpdates((cloudData) => {
+      if (cloudData.profile) {
+        setProfile((prev) => {
+          const next = { ...prev, ...cloudData.profile };
+          localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(next));
+          return next;
+        });
+      }
+      if (Array.isArray(cloudData.gallery)) {
+        setGallery(cloudData.gallery);
+        localStorage.setItem(STORAGE_KEYS.GALLERY, JSON.stringify(cloudData.gallery));
+      }
+      if (Array.isArray(cloudData.projects)) {
+        setProjects(cloudData.projects);
+        localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(cloudData.projects));
+      }
+      if (Array.isArray(cloudData.news)) {
+        setNews(cloudData.news);
+        localStorage.setItem(STORAGE_KEYS.NEWS, JSON.stringify(cloudData.news));
+      }
+      if (Array.isArray(cloudData.inquiries)) {
+        setInquiries(cloudData.inquiries);
+        localStorage.setItem(STORAGE_KEYS.INQUIRIES, JSON.stringify(cloudData.inquiries));
+      }
+    });
+
+    return unsub;
+  }, []);
+
+  // Helper to push local mutation to cloud
+  const pushCloudChanges = useCallback(async (partialPayload: SitePayload) => {
+    if (cloudService.isCloudActive()) {
+      try {
+        await cloudService.pushAllToCloud(partialPayload);
+      } catch (err) {
+        console.warn('Background cloud push failed:', err);
+      }
+    }
+  }, []);
+
+  // Local persistence effects
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(profile));
   }, [profile]);
@@ -157,6 +220,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (e) {
         console.error(e);
       }
+      pushCloudChanges({ profile: next });
       return next;
     });
   };
@@ -173,6 +237,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (e) {
         console.error(e);
       }
+      pushCloudChanges({ gallery: next });
       return next;
     });
   };
@@ -185,6 +250,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (e) {
         console.error(e);
       }
+      pushCloudChanges({ gallery: next });
       return next;
     });
   };
@@ -197,6 +263,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (e) {
         console.error(e);
       }
+      pushCloudChanges({ gallery: next });
       return next;
     });
   };
@@ -213,6 +280,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (e) {
         console.error(e);
       }
+      pushCloudChanges({ projects: next });
       return next;
     });
   };
@@ -225,6 +293,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (e) {
         console.error(e);
       }
+      pushCloudChanges({ projects: next });
       return next;
     });
   };
@@ -237,6 +306,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (e) {
         console.error(e);
       }
+      pushCloudChanges({ projects: next });
       return next;
     });
   };
@@ -253,6 +323,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (e) {
         console.error(e);
       }
+      pushCloudChanges({ news: next });
       return next;
     });
   };
@@ -265,6 +336,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (e) {
         console.error(e);
       }
+      pushCloudChanges({ news: next });
       return next;
     });
   };
@@ -277,6 +349,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (e) {
         console.error(e);
       }
+      pushCloudChanges({ news: next });
       return next;
     });
   };
@@ -294,18 +367,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (e) {
         console.error(e);
       }
+      pushCloudChanges({ inquiries: next });
       return next;
     });
   };
 
   const deleteInquiry = (id: string) => {
     setInquiries(prev => {
-      const next = prev.filter(inq => inq.id !== id);
+      const next = prev.filter(i => i.id !== id);
       try {
         localStorage.setItem(STORAGE_KEYS.INQUIRIES, JSON.stringify(next));
       } catch (e) {
         console.error(e);
       }
+      pushCloudChanges({ inquiries: next });
       return next;
     });
   };
@@ -316,7 +391,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProjects(initialProjects);
     setNews(initialNews);
     setInquiries([]);
-    Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
+    localStorage.removeItem(STORAGE_KEYS.PROFILE);
+    localStorage.removeItem(STORAGE_KEYS.GALLERY);
+    localStorage.removeItem(STORAGE_KEYS.PROJECTS);
+    localStorage.removeItem(STORAGE_KEYS.NEWS);
+    localStorage.removeItem(STORAGE_KEYS.INQUIRIES);
+    pushCloudChanges({
+      profile: initialArtistProfile,
+      gallery: initialGalleryItems,
+      projects: initialProjects,
+      news: initialNews,
+      inquiries: []
+    });
   };
 
   const exportData = (): string => {
@@ -325,7 +411,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       gallery,
       projects,
       news,
-      exportedAt: new Date().toISOString()
+      inquiries,
+      exportedAt: new Date().toISOString(),
+      version: '2.0'
     };
     return JSON.stringify(data, null, 2);
   };
@@ -337,9 +425,43 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (Array.isArray(parsed.gallery)) setGallery(parsed.gallery);
       if (Array.isArray(parsed.projects)) setProjects(parsed.projects);
       if (Array.isArray(parsed.news)) setNews(parsed.news);
+      pushCloudChanges(parsed);
       return true;
     } catch {
       return false;
+    }
+  };
+
+  const saveCloudConfig = async (config: FirebaseConfig | null): Promise<boolean> => {
+    try {
+      setIsSyncing(true);
+      cloudService.saveConfig(config);
+      setCloudConfig(config);
+      if (config && config.projectId && config.apiKey) {
+        const ok = await cloudService.connect(config);
+        setIsCloudConnected(ok);
+        return ok;
+      }
+      setIsCloudConnected(false);
+      return true;
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const syncAllToCloud = async (): Promise<boolean> => {
+    try {
+      setIsSyncing(true);
+      await cloudService.pushAllToCloud({
+        profile,
+        gallery,
+        projects,
+        news,
+        inquiries
+      });
+      return true;
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -354,6 +476,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdminOpen,
         selectedMedia,
         selectedNews,
+        isCloudConnected,
+        isSyncing,
+        cloudConfig,
         setIsAdminOpen,
         setSelectedMedia,
         setSelectedNews,
@@ -371,7 +496,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         deleteInquiry,
         resetToDefaults,
         exportData,
-        importData
+        importData,
+        saveCloudConfig,
+        syncAllToCloud
       }}
     >
       {children}

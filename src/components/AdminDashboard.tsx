@@ -31,7 +31,10 @@ import {
   Shield,
   Download,
   AlertCircle,
-  Check
+  Check,
+  Database,
+  RefreshCw,
+  Cloud
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
@@ -56,13 +59,18 @@ export const AdminDashboard: React.FC = () => {
     deleteInquiry,
     resetToDefaults,
     exportData,
-    importData
+    importData,
+    isCloudConnected,
+    isSyncing,
+    cloudConfig,
+    saveCloudConfig,
+    syncAllToCloud
   } = useData();
 
   const { isAuthenticated, user, logout, updateCredentials } = useAuth();
 
   const [activeTab, setActiveTab] = useState<
-    'homepage' | 'profile' | 'gallery' | 'projects' | 'news' | 'socials' | 'inquiries' | 'account'
+    'homepage' | 'profile' | 'gallery' | 'projects' | 'news' | 'socials' | 'inquiries' | 'cloud' | 'account'
   >('homepage');
 
   // Profile Form State
@@ -73,6 +81,62 @@ export const AdminDashboard: React.FC = () => {
   React.useEffect(() => {
     setProfileForm(profile);
   }, [profile]);
+
+  // Cloud Database State & Handlers
+  const [firebaseJsonInput, setFirebaseJsonInput] = useState(() => {
+    return cloudConfig ? JSON.stringify(cloudConfig, null, 2) : '';
+  });
+
+  React.useEffect(() => {
+    if (cloudConfig) {
+      setFirebaseJsonInput(JSON.stringify(cloudConfig, null, 2));
+    }
+  }, [cloudConfig]);
+
+  const handleSaveFirebaseConfig = async () => {
+    try {
+      let raw = firebaseJsonInput.trim();
+      if (raw.includes('{') && raw.includes('}')) {
+        raw = raw.substring(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
+      }
+      raw = raw.replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":').replace(/'/g, '"');
+      const parsed = JSON.parse(raw);
+      if (!parsed.projectId || !parsed.apiKey) {
+        showToast('Error: Pastikan apiKey dan projectId ada dalam konfigurasi.');
+        return;
+      }
+      soundEngine.playClick();
+      const ok = await saveCloudConfig(parsed);
+      if (ok) {
+        showToast('Berhasil terhubung ke Firebase Cloud Database!');
+        await syncAllToCloud();
+        showToast('Sinkronisasi data awal ke Cloud berhasil!');
+      } else {
+        showToast('Gagal menghubungkan ke Firebase. Cek konfigurasi.');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Format tidak valid. Pastikan JSON konfigurasi Firebase benar.');
+    }
+  };
+
+  const handleDisconnectCloud = async () => {
+    soundEngine.playClick();
+    await saveCloudConfig(null);
+    setFirebaseJsonInput('');
+    showToast('Koneksi Cloud Database diputuskan. Kembali ke mode lokal.');
+  };
+
+  const handleSyncAllToCloud = async () => {
+    soundEngine.playClick();
+    try {
+      await syncAllToCloud();
+      showToast('Seluruh data berhasil disinkronkan ke Cloud!');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal sinkronisasi';
+      showToast(`Error: ${msg}`);
+    }
+  };
 
   // Gallery Form State (New & Editing)
   const [newGallery, setNewGallery] = useState<{
@@ -436,6 +500,12 @@ export const AdminDashboard: React.FC = () => {
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   <span>Admin: {user?.username}</span>
                 </span>
+                <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono-code bg-white/5 border border-white/10">
+                  <span className={`w-1.5 h-1.5 rounded-full ${isCloudConnected ? 'bg-emerald-400 animate-pulse' : 'bg-neutral-500'}`} />
+                  <span className={isCloudConnected ? 'text-emerald-400 font-semibold' : 'text-neutral-400'}>
+                    {isCloudConnected ? 'Cloud Online' : 'Mode Lokal'}
+                  </span>
+                </span>
               </div>
               <span className="text-[10px] font-mono-code text-neutral-400">
                 Official Content & Database Control Room
@@ -566,6 +636,22 @@ export const AdminDashboard: React.FC = () => {
             >
               <Mail className="w-4 h-4 shrink-0" />
               <span>Inquiries ({inquiries.length})</span>
+            </button>
+
+            <button
+              onClick={() => {
+                soundEngine.playClick();
+                setActiveTab('cloud');
+              }}
+              className={`flex items-center gap-2.5 px-3 py-2 text-xs font-semibold uppercase tracking-wider rounded transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'cloud' ? 'bg-cyan-400 text-black font-bold' : 'text-neutral-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Database className="w-4 h-4 shrink-0 text-cyan-400" />
+              <div className="flex items-center gap-1.5">
+                <span>Database Online</span>
+                <span className={`w-2 h-2 rounded-full ${isCloudConnected ? 'bg-emerald-400 animate-pulse' : 'bg-neutral-600'}`} />
+              </div>
             </button>
 
             <button
@@ -2559,6 +2645,132 @@ export const AdminDashboard: React.FC = () => {
                         onChange={handleImport}
                       />
                     </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* CLOUD DATABASE & REALTIME MULTI-DEVICE SYNC TAB */}
+            {activeTab === 'cloud' && (
+              <div className="space-y-8 max-w-4xl">
+                <div className="pb-4 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-display text-xl font-bold text-white uppercase flex items-center gap-2.5">
+                      <Database className="w-5 h-5 text-cyan-400" />
+                      <span>Cloud Database (Sinkronisasi Multi-Perangkat)</span>
+                    </h3>
+                    <p className="text-xs text-neutral-400 font-light mt-1">
+                      Setiap foto, teks, atau item yang Anda ubah/hapus di laptop langsung otomatis ter-update di handphone dan pengunjung lain secara real-time.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-start sm:self-center">
+                    <button
+                      onClick={handleSyncAllToCloud}
+                      disabled={isSyncing}
+                      className="flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-black bg-cyan-400 hover:bg-cyan-300 disabled:opacity-50 rounded transition-all cursor-pointer shadow-[0_0_15px_rgba(34,211,238,0.3)] font-bold"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                      <span>{isSyncing ? 'Menyinkronkan...' : 'Kirim Semua Data ke Cloud'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Status Connection Card */}
+                <div className={`p-6 rounded-lg border ${
+                  isCloudConnected
+                    ? 'bg-emerald-950/20 border-emerald-500/40'
+                    : 'bg-neutral-900/50 border-white/10'
+                }`}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3.5 h-3.5 rounded-full ${isCloudConnected ? 'bg-emerald-400 animate-pulse' : 'bg-neutral-500'}`} />
+                      <div>
+                        <h4 className="text-sm font-semibold uppercase tracking-wider text-white">
+                          {isCloudConnected ? 'Status: Terhubung ke Cloud Database' : 'Status: Belum Terhubung (Mode Lokal)'}
+                        </h4>
+                        <p className="text-xs text-neutral-400 mt-1">
+                          {isCloudConnected
+                            ? `Sinkronisasi real-time aktif pada project "${cloudConfig?.projectId || 'Firebase'}". Setiap perubahan langsung broadcast ke semua handphone & laptop.`
+                            : 'Data saat ini hanya tersimpan di memori browser lokal perangkat ini. Hubungkan Firebase untuk sinkronisasi otomatis antar-perangkat.'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {isCloudConnected && (
+                      <button
+                        onClick={handleDisconnectCloud}
+                        className="text-xs text-rose-400 hover:text-rose-300 underline font-mono-code cursor-pointer"
+                      >
+                        Putuskan Sambungan
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Setup Form */}
+                <div className="p-6 bg-neutral-900/40 border border-white/10 rounded-lg space-y-6">
+                  <div>
+                    <h4 className="text-sm font-semibold uppercase tracking-wider text-white mb-2">
+                      Konfigurasi Firebase Firestore
+                    </h4>
+                    <p className="text-xs text-neutral-400 font-light">
+                      Tempel langsung kode objek <code className="text-cyan-300 font-mono">firebaseConfig</code> dari Firebase Console di bawah ini, lalu klik Simpan:
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-[11px] uppercase tracking-wider text-neutral-400 font-mono-code mb-1.5">
+                        JSON / Kode Konfigurasi Firebase:
+                      </label>
+                      <textarea
+                        value={firebaseJsonInput}
+                        onChange={(e) => setFirebaseJsonInput(e.target.value)}
+                        placeholder={`{\n  "apiKey": "AIzaSy...",\n  "authDomain": "kimel-web.firebaseapp.com",\n  "projectId": "kimel-web",\n  "storageBucket": "kimel-web.appspot.com",\n  "messagingSenderId": "...",\n  "appId": "1:..."\n}`}
+                        rows={8}
+                        className="w-full px-3 py-2 text-xs font-mono-code bg-black/80 border border-white/15 focus:border-cyan-400 focus:outline-none rounded text-neutral-200"
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3 pt-2">
+                      <button
+                        onClick={handleSaveFirebaseConfig}
+                        disabled={isSyncing || !firebaseJsonInput.trim()}
+                        className="flex items-center gap-2 px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-black bg-white hover:bg-neutral-200 disabled:opacity-40 rounded transition-all cursor-pointer font-bold"
+                      >
+                        <Save className="w-4 h-4" />
+                        <span>Simpan & Hubungkan Database</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Panduan Bergambar / Langkah Cepat */}
+                <div className="p-6 bg-black/60 border border-white/10 rounded-lg space-y-4">
+                  <h4 className="text-sm font-semibold uppercase tracking-wider text-white flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-400" />
+                    <span>Panduan 3 Menit: Cara Membuat Firebase Gratis</span>
+                  </h4>
+                  <ol className="space-y-3 text-xs text-neutral-300 list-decimal list-inside leading-relaxed font-light">
+                    <li>
+                      Buka <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer" className="text-cyan-400 underline font-mono">console.firebase.google.com</a> dan login menggunakan akun Google Anda.
+                    </li>
+                    <li>
+                      Klik <strong>"Add project"</strong> (Tambah proyek) &rarr; beri nama misal <code className="text-neutral-200">kimel-web</code> &rarr; lanjutkan sampai selesai.
+                    </li>
+                    <li>
+                      Di menu sebelah kiri, pilih <strong>Build &rarr; Firestore Database</strong> &rarr; klik <strong>Create database</strong> &rarr; pilih lokasi (misal <em>asia-southeast2</em>) &rarr; pilih <strong>Start in test mode</strong> &rarr; klik <strong>Create</strong>.
+                    </li>
+                    <li>
+                      Klik ikon <strong>Settings ⚙️</strong> di sebelah kiri atas &rarr; <strong>Project settings</strong> &rarr; scroll ke bawah ke bagian <em>"Your apps"</em> &rarr; klik ikon Web <strong>&lt;/&gt;</strong> &rarr; daftarkan nama web.
+                    </li>
+                    <li>
+                      Salin (copy) kode di dalam <code className="text-cyan-300 font-mono">const firebaseConfig = &#123; ... &#125;;</code> lalu tempelkan ke kolom form di atas, kemudian klik <strong>"Simpan & Hubungkan Database"</strong>.
+                    </li>
+                  </ol>
+                  <div className="pt-2 text-[11px] text-emerald-400 font-mono-code bg-emerald-950/30 p-3 rounded border border-emerald-900/50">
+                    ✨ Begitu tersambung, Anda tidak perlu setting apa-apa lagi! Setiap kali Anda mengganti foto atau menghapus konten di dashboard ini, seluruh HP dan pengunjung yang sedang membuka website akan ter-update detik itu juga secara otomatis!
                   </div>
                 </div>
               </div>
